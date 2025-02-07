@@ -1,47 +1,32 @@
 import numpy.typing as npt
 from itertools import permutations
 
-from source.client import ClientNode, Client
+from source.client import Client
 from source.params import MAXIMUM_VOLUME
 
 
 class Route:
     """
-    Routes are ordered lists of clients to visit, starting and ending at the initial point. They are described by a
-    linked list of clients, and the total distance cost of that route. The head and end of a list will always be the
-    starting point
+    Routes are ordered lists of clients to visit, starting and ending at the initial point. They are described by an
+    ordered list of clients, the start/end point and the total distance cost of that route.
     """
 
     def __init__(self, starting_point: Client, ordered_client_list: tuple[Client], distance_matrix: npt.NDArray[float]):
-        self.head = ClientNode(starting_point)
-        self.end = ClientNode(starting_point)
-        self.link_nodes(ordered_client_list)
+        self.starting_point = starting_point
+        self.ordered_client_list = ordered_client_list
         self.distance_matrix = distance_matrix
         self.distance = self.calculate_distance_cost()
-
-    def link_nodes(self, ordered_client_list: tuple[Client]):
-        """
-        Connect the client nodes in the list order, putting the starting point at the head and end.
-        :param ordered_client_list: List of clients in order of visit
-        :return:
-        """
-        current_node = self.head
-        for client in ordered_client_list:
-            client_node = ClientNode(client)
-            current_node.next = client_node
-            current_node = client_node
-        current_node.next = self.end
 
     def calculate_distance_cost(self) -> float:
         """
         Calculate the distance cost of the route
         :return: The distance cost
         """
-        distance = 0.0
-        current_node = self.head
-        while current_node.next is not None:
-            distance += self.distance_matrix[current_node.client.client_id][current_node.next.client.client_id]
-            current_node = current_node.next
+        distance = self.distance_matrix[self.starting_point.client_id][self.ordered_client_list[0].client_id]
+        for current_client, next_client in zip(self.ordered_client_list, self.ordered_client_list[1:]):
+            distance += self.distance_matrix[current_client.client_id][next_client.client_id]
+        distance += self.distance_matrix[
+            self.ordered_client_list[len(self.ordered_client_list)-1].client_id][self.starting_point.client_id]
         return distance
 
 

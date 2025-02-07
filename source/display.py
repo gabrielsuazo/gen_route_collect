@@ -38,11 +38,18 @@ def graph_route(route: Route, color: str, show: bool = False):
     :param show: Boolean to show or not
     :return:
     """
-    current_node = route.head
-    while current_node.next is not None:
-        plt.plot((current_node.client.coordinates[0], current_node.next.client.coordinates[0]),
-                 (current_node.client.coordinates[1], current_node.next.client.coordinates[1]), c=color)
-        current_node = current_node.next
+    plt.plot((route.starting_point.coordinates[0], route.ordered_client_list[0].coordinates[0]),
+             (route.starting_point.coordinates[1], route.ordered_client_list[0].coordinates[1]), c=color)
+    for current_client, next_client in zip(route.ordered_client_list, route.ordered_client_list[1:]):
+        plt.plot((current_client.coordinates[0], next_client.coordinates[0]),
+                 (current_client.coordinates[1], next_client.coordinates[1]), c=color)
+    plt.plot(
+        (route.ordered_client_list[len(route.ordered_client_list)-1].coordinates[0],
+         route.starting_point.coordinates[0]),
+        (route.ordered_client_list[len(route.ordered_client_list)-1].coordinates[1],
+         route.starting_point.coordinates[1]),
+        c=color
+    )
     if show:
         plt.show()
 

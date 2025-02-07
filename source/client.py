@@ -31,17 +31,6 @@ class Client:
         self.capacity = random.randrange(self.volume, CLIENT_VOLUME_RANGE[1])
 
 
-class ClientNode:
-    """
-    Client nodes store the client information, as well as the previous and the next nodes on the client list of a route.
-    """
-
-    def __init__(self, client: Client):
-        self.client = client
-        self.next = None
-        self.prev = None
-
-
 def calculate_distance_between_clients(first_client: Client, second_client: Client) -> float:
     """
     Calculated the Euclidean distance between two clients on the xy plane
