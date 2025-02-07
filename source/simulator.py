@@ -1,9 +1,8 @@
-import math
 import numpy as np
 import numpy.typing as npt
 
-from source.client import Client
-from source.display import graph_route, graph_partition
+from source.client import Client, calculate_distance_between_clients
+from source.display import graph_partition
 from source.params import SIZE_X, SIZE_Y
 from source.partition import Partition
 from source.route import ClientSet
@@ -50,6 +49,11 @@ class Simulator:
         return distance_matrix
 
     def start_simulation(self):
+        """
+        Start the simulation by generating the initial partition, and creating the first generation by copying and
+        mutating this first individual
+        :return:
+        """
         initial_partition = self.create_initial_routes_partition()
         graph_partition(initial_partition, True)
         return
@@ -88,6 +92,12 @@ class Simulator:
         return closest_client
 
     def create_initial_routes_partition(self):
+        """
+        Create the initial individual partition. We take a heuristic approach by creating sets starting with the
+        highest client available and adding the closest neighbors until the set is close to being full. This approach
+        allows us to start with a number of sets that should be close to optimal (no more than 2 times the optimal)
+        :return: The initial partition of client sets
+        """
         taken_clients = [self.starting_point]
         partition = Partition()
         while len(taken_clients) < self.clients_number+1:
@@ -102,20 +112,6 @@ class Simulator:
         partition.check_completion(self.client_array)
         if not partition.is_complete:
             raise Exception("Error in creating initial partition: not complete")
-
         for client_set in partition.client_sets:
             client_set.generate_best_route(self.starting_point, self.distance_matrix)
         return partition
-
-
-def calculate_distance_between_clients(first_client: Client, second_client: Client) -> float:
-    """
-    Calculated the Euclidean distance between two clients on the xy plane
-    :param first_client: First client
-    :param second_client: Second client
-    :return: The distance value
-    """
-    return math.sqrt(
-        (first_client.coordinates[0] - second_client.coordinates[0]) ** 2 +
-        (first_client.coordinates[1] - second_client.coordinates[1]) ** 2
-    )

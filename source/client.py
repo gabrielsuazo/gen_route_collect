@@ -1,3 +1,4 @@
+import math
 import random
 
 from source.params import SIZE_X, SIZE_Y, CLIENT_VOLUME_RANGE
@@ -39,3 +40,16 @@ class ClientNode:
         self.client = client
         self.next = None
         self.prev = None
+
+
+def calculate_distance_between_clients(first_client: Client, second_client: Client) -> float:
+    """
+    Calculated the Euclidean distance between two clients on the xy plane
+    :param first_client: First client
+    :param second_client: Second client
+    :return: The distance value
+    """
+    return math.sqrt(
+        (first_client.coordinates[0] - second_client.coordinates[0]) ** 2 +
+        (first_client.coordinates[1] - second_client.coordinates[1]) ** 2
+    )
