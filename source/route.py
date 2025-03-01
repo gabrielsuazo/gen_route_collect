@@ -1,3 +1,4 @@
+import random
 import numpy.typing as npt
 from itertools import permutations
 
@@ -57,6 +58,17 @@ class ClientSet:
             self.volume = new_volume
             return True
         return False
+
+    def remove_client(self, client: Client):
+        """
+        Remove client from the set. Raise exception if the client was not in the set
+        :param client: Client to remove
+        :return:
+        """
+        if client not in self.client_set:
+            raise Exception(f"Error on removal: Client {client} not in set {self.client_set}")
+        self.client_set.remove(client)
+        self.update_volume_on_removal(client)
 
     def calculate_volume_on_insertion(self, added_client: Client) -> int:
         """
@@ -122,3 +134,37 @@ def try_exchange_clients(first_set: ClientSet, second_set: ClientSet,
             second_set.client_set.add(first_client)
             return True
     return False
+
+
+def try_merging_sets(first_set: ClientSet, second_set: ClientSet) -> bool:
+    """
+    Try to merge two sets. If the combined volume exceeds the first set's maximum, the merge is not done
+    :param first_set: First set to merge
+    :param second_set: Second set to merge
+    :return: True if merge was successful, False otherwise
+    """
+    new_volume = first_set.volume + second_set.volume
+    if new_volume <= first_set.volume:
+        first_set.client_set = first_set.client_set.union(second_set.client_set)
+        first_set.volume = new_volume
+        second_set.client_set.clear()
+        second_set.volume = 0
+        return True
+    return False
+
+
+def try_divide_set(client_set: ClientSet) -> tuple[ClientSet, None] | tuple[ClientSet, ClientSet]:
+    """
+    Try to divide set into two subsets. Returns the original set and none if the set doesn't have at least two clients
+    :param client_set: Client set to divide
+    :return: Two client subsets, or the original set and none if division fails
+    """
+    if len(client_set.client_set) < 1:
+        return client_set, None
+
+    new_client_set = ClientSet()
+    for i in range(len(client_set.client_set) // 2):
+        client = random.choice(tuple(client_set.client_set))
+        client_set.remove_client(client)
+        new_client_set.try_add_client(client)
+    return client_set, new_client_set

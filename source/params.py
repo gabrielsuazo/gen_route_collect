@@ -5,3 +5,6 @@ MAXIMUM_VOLUME = 30
 STARTING_POINT_COLOR = "blueviolet"
 CLIENTS_COLORS = ("springgreen", "gold", "r")
 ROUTE_COLORS = ("orange", "olivedrab", "royalblue", "orchid", "firebrick", "darkgoldenrod", "palegreen", "turquoise")
+MUTATION_RETRY_NUMBER = 5
+CHANCE_OF_MUTATION = 0.25
+BEST_PROPORTION = 0.10

@@ -3,8 +3,7 @@ from source.simulator import Simulator
 
 
 def main():
-    simulator = Simulator(clients_number=20)
-    print(simulator.client_array)
+    simulator = Simulator(clients_number=20, population_number=200)
     graph_clients_array(simulator.client_array)
     simulator.start_simulation()
 

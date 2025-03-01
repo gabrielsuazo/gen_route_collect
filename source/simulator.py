@@ -3,8 +3,9 @@ import numpy.typing as npt
 
 from source.client import Client, calculate_distance_between_clients
 from source.display import graph_partition
-from source.params import SIZE_X, SIZE_Y
+from source.params import SIZE_X, SIZE_Y, BEST_PROPORTION
 from source.partition import Partition
+from source.population import Population
 from source.route import ClientSet
 
 
@@ -13,14 +14,16 @@ class Simulator:
     Define and run the simulation.
     """
 
-    def __init__(self, clients_number: int):
+    def __init__(self, clients_number: int, population_number: int):
         self.starting_point = Client(client_id=0, volume=0, coordinates=(SIZE_X / 2, SIZE_Y / 2), capacity=0)
         self.current_optimal_distance = float('inf')
-        self.current_optimal_partition = []
+        self.current_optimal_partition = Partition()
         self.track_list_distances = []
         self.clients_number = clients_number
         self.client_array = self.generate_clients()
         self.distance_matrix = self.generate_distance_matrix()
+        self.population_number = population_number
+        self.best_number = int(self.population_number*BEST_PROPORTION)
 
     def generate_clients(self) -> npt.NDArray[Client]:
         """
@@ -55,8 +58,14 @@ class Simulator:
         :return:
         """
         initial_partition = self.create_initial_routes_partition()
-        graph_partition(initial_partition, True)
-        return
+        population = Population(initial_partition, self.population_number, self.best_number)
+        while True:
+            self.current_optimal_partition = population.best_array[self.best_number-1]
+            self.current_optimal_distance = self.current_optimal_partition.distance
+            self.track_list_distances.append(self.current_optimal_distance)
+            graph_partition(self.current_optimal_partition, True)
+            next_gen = population.create_new_generation()
+            population.update_best_array(next_gen, self.starting_point, self.distance_matrix)
 
     def get_remaining_highest_volume_client(self, taken_clients: list[Client]) -> Client:
         """
@@ -112,6 +121,5 @@ class Simulator:
         partition.check_completion(self.client_array)
         if not partition.is_complete:
             raise Exception("Error in creating initial partition: not complete")
-        for client_set in partition.client_sets:
-            client_set.generate_best_route(self.starting_point, self.distance_matrix)
+        partition.calculate_distance(self.starting_point, self.distance_matrix)
         return partition
