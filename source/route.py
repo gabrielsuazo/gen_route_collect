@@ -44,6 +44,12 @@ class ClientSet:
         self.maximum_volume = maximum_volume
         self.best_route = None
 
+    def __eq__(self, other):
+        if isinstance(other, ClientSet):
+            return (self.client_set == other.client_set and self.volume == other.volume
+                    and self.maximum_volume == other.maximum_volume and self.best_route == other.best_route)
+        return False
+
     def try_add_client(self, client: Client) -> bool:
         """
         Try to add new a client to the route. If the volume exceeded the limit, the client is not added
@@ -144,7 +150,7 @@ def try_merging_sets(first_set: ClientSet, second_set: ClientSet) -> bool:
     :return: True if merge was successful, False otherwise
     """
     new_volume = first_set.volume + second_set.volume
-    if new_volume <= first_set.volume:
+    if new_volume <= first_set.maximum_volume:
         first_set.client_set = first_set.client_set.union(second_set.client_set)
         first_set.volume = new_volume
         second_set.client_set.clear()
@@ -159,7 +165,7 @@ def try_divide_set(client_set: ClientSet) -> tuple[ClientSet, None] | tuple[Clie
     :param client_set: Client set to divide
     :return: Two client subsets, or the original set and none if division fails
     """
-    if len(client_set.client_set) < 1:
+    if len(client_set.client_set) <= 1:
         return client_set, None
 
     new_client_set = ClientSet()

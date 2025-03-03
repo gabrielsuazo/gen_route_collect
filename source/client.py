@@ -19,6 +19,15 @@ class Client:
     def __repr__(self):
         return f"Client {self.client_id} at {self.coordinates}"
 
+    def __eq__(self, other):
+        if isinstance(other, Client):
+            return (self.client_id == other.client_id and self.volume == other.volume
+                    and self.coordinates == other.coordinates and self.capacity == other.capacity)
+        return False
+
+    def __hash__(self):
+        return self.client_id
+
     def randomize_client_params(self):
         """
         Randomize the volume, coordinates and capacity of the client, within the set ranges

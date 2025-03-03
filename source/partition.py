@@ -18,6 +18,10 @@ class Partition:
         self.is_complete = False
         self.client_sets = []
 
+    def __eq__(self, other):
+        if isinstance(other, Partition):
+            return self.client_sets == other.client_sets
+
     def add_client_set(self, client_set: ClientSet):
         """
         Add client set to the list of sets
@@ -26,7 +30,7 @@ class Partition:
         """
         self.client_sets.append(client_set)
 
-    def check_completion(self, clients_array):
+    def check_completion(self, clients_array: npt.NDArray[Client]):
         """
         Check if the partition contains all the clients and set the is_complete value accordingly. We skip over the
         first client, which is the starting point
@@ -50,12 +54,13 @@ class Partition:
         :param retry_counter: Number of retries allowed
         :return: True if exchange was successful, False if it is still a failure after all the retries
         """
-        for i in range(retry_counter):
-            client_sets = random.sample(self.client_sets, 2)
-            first_client = random.choice(tuple(client_sets[0].client_set))
-            second_client = random.choice(tuple(client_sets[1].client_set))
-            if try_exchange_clients(client_sets[0], client_sets[1], first_client, second_client):
-                return True
+        if len(self.client_sets) >= 2:
+            for i in range(retry_counter):
+                client_sets = random.sample(self.client_sets, 2)
+                first_client = random.choice(tuple(client_sets[0].client_set))
+                second_client = random.choice(tuple(client_sets[1].client_set))
+                if try_exchange_clients(client_sets[0], client_sets[1], first_client, second_client):
+                    return True
         return False
 
     def try_client_transfer_mutation(self, retry_counter: int = MUTATION_RETRY_NUMBER) -> bool:
@@ -64,14 +69,15 @@ class Partition:
         :param retry_counter: Number of retries allowed
         :return: True if exchange was successful, False if it is still a failure after all the retries
         """
-        for i in range(retry_counter):
-            client_sets = random.sample(self.client_sets, 2)
-            transfer_client = random.choice(tuple(client_sets[0].client_set))
-            if client_sets[1].try_add_client(transfer_client):
-                client_sets[0].remove_client(transfer_client)
-                if len(client_sets[0].client_set) == 0:
-                    self.client_sets.remove(client_sets[0])
-                return True
+        if len(self.client_sets) >= 2:
+            for i in range(retry_counter):
+                client_sets = random.sample(self.client_sets, 2)
+                transfer_client = random.choice(tuple(client_sets[0].client_set))
+                if client_sets[1].try_add_client(transfer_client):
+                    client_sets[0].remove_client(transfer_client)
+                    if len(client_sets[0].client_set) == 0:
+                        self.client_sets.remove(client_sets[0])
+                    return True
         return False
 
     def try_set_merge_mutation(self, retry_counter: int = MUTATION_RETRY_NUMBER) -> bool:
@@ -80,11 +86,12 @@ class Partition:
         :param retry_counter: Number of retries allowed
         :return: True if exchange was successful, False if it is still a failure after all the retries
         """
-        for i in range(retry_counter):
-            client_sets = random.sample(self.client_sets, 2)
-            if try_merging_sets(client_sets[0], client_sets[1]):
-                self.client_sets.remove(client_sets[1])
-                return True
+        if len(self.client_sets) >= 2:
+            for i in range(retry_counter):
+                client_sets = random.sample(self.client_sets, 2)
+                if try_merging_sets(client_sets[0], client_sets[1]):
+                    self.client_sets.remove(client_sets[1])
+                    return True
         return False
 
     def try_set_division_mutation(self, retry_counter: int = MUTATION_RETRY_NUMBER) -> bool:
